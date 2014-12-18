@@ -30,10 +30,13 @@ namespace DNSRootServerResolver
 
             foreach (var question in query.Questions)
             {
+                Console.WriteLine(question);
+
                 switch (question.RecordType)
                 {
                     case RecordType.A: 
-                        query.AnswerRecords.AddRange(DNS.Resolve(question.Name)); break;
+                    case RecordType.Mx:
+                        query.AnswerRecords.AddRange(DNS.Resolve(question.Name, question.RecordType, question.RecordClass)); break;
 
                     case RecordType.Ptr: 
                         {
@@ -42,9 +45,16 @@ namespace DNSRootServerResolver
                                 query.AnswerRecords.Add(new PtrRecord("127.0.0.1", 172800 /*2 days*/, "localhost"));
                             }
                         }; break;
+                    default: 
+                        {
+                            query.ReturnCode = ReturnCode.NotImplemented;
+
+                            Console.WriteLine("Unknown record type: " + question.RecordType + " (class: " + question.RecordClass + ", " + question.Name + ")"); 
+                        } break;
                 }
             }
 
+            
             return query;
         }
     }
