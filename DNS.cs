@@ -20,7 +20,12 @@ namespace DNSRootServerResolver
             public long RequestedTimes;
         }
 
-        public static List<DnsRecordBase> Resolve(string domain, bool useGoogleLookup = false)
+        private static string getDomainRoot(string domain)
+        {
+            return String.Join(".", domain.Split('.').Reverse().Take(2).Reverse());
+        }
+
+        public static List<DnsRecordBase> Resolve(string domain, RecordType type, RecordClass @class, bool useGoogleLookup = false)
         {
             Entry domainCache;
             if (GlobalCache.TryGetValue(domain, out domainCache))
@@ -29,10 +34,28 @@ namespace DNSRootServerResolver
 
                 return domainCache.RefreshIfExpired().AnswerRecords;
             }
+            else
+            {
+                if (GlobalCache.TryGetValue("@provider." + getDomainRoot(domain), out domainCache))
+                {
+                    var providerServers = domainCache.Value;
+
+                    foreach (var providerServer in providerServers.AdditionalRecords.OfType<ARecord>())
+                    {
+                        var providerServerDns = new DnsClient(providerServer.Address, 2000);
+
+                        var hostServers = CacheResolver(providerServerDns, domain, domain, type, @class);
+                        if (hostServers != null)
+                        {
+                            return hostServers.AnswerRecords;
+                        }
+                    }
+                }
+            }
 
             if (useGoogleLookup)
             {
-                var google = CacheResolver(GoogleDns, domain, domain);
+                var google = CacheResolver(GoogleDns, domain, domain, type, @class);
 
                 if (google != null)
                 {
@@ -43,21 +66,21 @@ namespace DNSRootServerResolver
             {
                 var tld = domain.Split('.').Last();
 
-                var countryServers = CacheResolver(EarthRoot, domain, "192.228.79.201." + tld);
+                var countryServers = CacheResolver(EarthRoot, domain, "@earthroot." + tld, type, @class);
                 if (countryServers != null)
                 {
                     foreach (var countryServer in countryServers.AdditionalRecords.OfType<ARecord>())
                     {
                         var countryServerDns = new DnsClient(countryServer.Address, 2000);
-                        
-                        var providerServers = CacheResolver(countryServerDns, domain, countryServer.Address + "." + domain);
+
+                        var providerServers = CacheResolver(countryServerDns, domain, "@provider." + getDomainRoot(domain), type, @class);
                         if (providerServers != null)
                         {
                             foreach (var providerServer in providerServers.AdditionalRecords.OfType<ARecord>())
                             {
                                 var providerServerDns = new DnsClient(providerServer.Address, 2000);
-                                
-                                var hostServers = CacheResolver(providerServerDns, domain, domain);
+
+                                var hostServers = CacheResolver(providerServerDns, domain, domain, type, @class);
                                 if (hostServers != null)
                                 {
                                     return hostServers.AnswerRecords;
@@ -71,7 +94,7 @@ namespace DNSRootServerResolver
             return new List<DnsRecordBase>();
         }
 
-        private static DnsMessage CacheResolver(DnsClient client, string domain, string cacheName)
+        private static DnsMessage CacheResolver(DnsClient client, string domain, string cacheName, RecordType type, RecordClass @class)
         {
             Entry domainCache;
             if (GlobalCache.TryGetValue(cacheName, out domainCache))
@@ -80,7 +103,7 @@ namespace DNSRootServerResolver
             }
             else
             {
-                Func<DnsMessage> renewer = () => client.Resolve(domain, RecordType.A);
+                Func<DnsMessage> renewer = () => client.Resolve(domain, type, @class);
 
                 Func<DnsMessage, DateTime> reexpirator = (dns) =>
                 {
