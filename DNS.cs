@@ -32,7 +32,7 @@ namespace DNSRootServerResolver
             {
                 domainCache.RequestedTimes++;
 
-                return domainCache.RefreshIfExpired().AnswerRecords;
+                return domainCache.Value.AnswerRecords;
             }
             else
             {
@@ -97,11 +97,7 @@ namespace DNSRootServerResolver
         private static DnsMessage CacheResolver(DnsClient client, string domain, string cacheName, RecordType type, RecordClass @class)
         {
             Entry domainCache;
-            if (GlobalCache.TryGetValue(cacheName, out domainCache))
-            {
-                domainCache.RefreshIfExpired();
-            }
-            else
+            if (!GlobalCache.TryGetValue(cacheName, out domainCache))
             {
                 Func<DnsMessage> renewer = () => client.Resolve(domain, type, @class);
 
