@@ -4,37 +4,50 @@ namespace DNSRootServerResolver
 {
     public class Expirable<T>
     {
+        private bool initialized;
+
         private Func<T> renewer;
         private Func<T, DateTime> reexpirator;
 
         public DateTime ExpiresAt { get; set; }
 
-        public T Value { get; set; }
+        private T value;
+        public T Value
+        {
+            get
+            {
+                Refresh();
+
+                return value;
+            }
+            set { this.value = value; }
+        }
 
         public Expirable(Func<T> renewer, Func<T, DateTime> reexpirator)
         {
             this.renewer = renewer;
             this.reexpirator = reexpirator;
-
-            this.Refresh();
         }
 
-        public bool Expired { get { return DateTime.Now > ExpiresAt; } }
+        public bool Expired 
+        { 
+            get 
+            {
+                if (!initialized) Refresh();
+
+                return DateTime.Now > ExpiresAt; 
+            } 
+        }
 
         public void Refresh()
         {
-            Value = this.renewer();
-            ExpiresAt = this.reexpirator(Value);
-        }
-
-        public T RefreshIfExpired()
-        {
-            if (Expired)
+            if (!initialized || Expired)
             {
-                Refresh();
+                this.value = this.renewer();
+                this.ExpiresAt = this.reexpirator(this.value);
             }
 
-            return Value;
+            initialized = true;
         }
     }
 }
