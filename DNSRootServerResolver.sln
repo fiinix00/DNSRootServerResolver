@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DNSRootServerResolver", "DNSRootServerResolver.csproj", "{68D57FFD-6765-4DC8-A853-1F6880D1540B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DNSRootServerResolver.Tests", "DNSRootServerResolver.Tests\DNSRootServerResolver.Tests.csproj", "{2BDC4493-6A64-4CB0-8324-799AB2CCB805}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{68D57FFD-6765-4DC8-A853-1F6880D1540B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68D57FFD-6765-4DC8-A853-1F6880D1540B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68D57FFD-6765-4DC8-A853-1F6880D1540B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BDC4493-6A64-4CB0-8324-799AB2CCB805}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BDC4493-6A64-4CB0-8324-799AB2CCB805}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BDC4493-6A64-4CB0-8324-799AB2CCB805}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BDC4493-6A64-4CB0-8324-799AB2CCB805}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
